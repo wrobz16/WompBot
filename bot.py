@@ -1,13 +1,15 @@
 import os
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 
 #################################################
 # SETUP
 #################################################
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
+def load_token():
+    with open("token.txt", "r") as file:
+        return file.readline().strip()
+
+TOKEN = load_token()
 
 PREFIX = "w! "
 intents=discord.Intents.all()
