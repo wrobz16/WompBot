@@ -9,10 +9,13 @@ import yt_dlp as youtube_dl
 def load_token():
     with open("token.txt", "r") as file:
         return file.readline().strip()
-
 TOKEN = load_token()
 
-PREFIX = "! "
+def load_prefix():
+    with open("prefix.txt", "r") as file:
+        return file.readline().strip()
+PREFIX = load_prefix() + " "
+
 intents=discord.Intents.all()
 bot = commands.Bot(command_prefix=PREFIX, intents=intents, case_insensitive=True)
 
