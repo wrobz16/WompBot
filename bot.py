@@ -57,22 +57,12 @@ async def on_message(message):
 #################################################
 # COMMANDS
 #################################################
-command_descriptions = {
-    "help": "Displays this help message.",
-    "kos": "Displays the list of players that are KOS.",
-    "kos_add <player>": "Adds a player to the KOS list",
-    "kos_remove <player>": "removes a player from the KOS list.",
-    "allies": "Displays the list of players that are allies.",
-    "allies_add <player>": "Adds a player to the allies list",
-    "allies_remove <player>": "removes a player from the allies list.",
-    "play <YouTube URL or search query>": "Plays a song from YouTube.",
-    "stop": "Stops the currently playing song.",
-    "leave": "Makes the bot leave the voice channel."
-}
+command_descriptions = {}
 
 # HELP ------------------------------------------
 bot.remove_command('help')
 
+command_descriptions['help'] = "Displays this help message."
 @bot.command(name='help')
 async def _help(ctx):
     help_text = "__**List of commands:**__\n"  # Header underlined and bold
@@ -94,6 +84,16 @@ def load_kos():
 
 kos_list = load_kos()
 
+command_descriptions['kos'] = "Displays the list of players that are KOS."
+@bot.command(name='kos')
+async def display_kos(ctx):
+    if kos_list:
+        kos_str = '\n'.join(kos_list)
+        await ctx.send(f'KOS List:\n{kos_str}')
+    else:
+        await ctx.send('KOS List is empty.')
+
+command_descriptions["kos_add <player>"] = "Adds a player to the KOS list"
 @bot.command(name='kos_add')
 async def kos_add(ctx, name: str):
     if name not in kos_list:
@@ -103,6 +103,7 @@ async def kos_add(ctx, name: str):
     else:
         await ctx.send(f'`{name}` is already in the KOS list.')
 
+command_descriptions['kos_remove <player>'] = "Removes a player from the KOS list."
 @bot.command(name='kos_remove')
 async def kos_remove(ctx, name: str):
     if name in kos_list:
@@ -111,14 +112,6 @@ async def kos_remove(ctx, name: str):
         await ctx.send(f'Removed `{name}` from the KOS list.')
     else:
         await ctx.send(f'`{name}` is not in the KOS list.')
-
-@bot.command(name='kos')
-async def display_kos(ctx):
-    if kos_list:
-        kos_str = '\n'.join(kos_list)
-        await ctx.send(f'KOS List:\n{kos_str}')
-    else:
-        await ctx.send('KOS List is empty.')
 
 # ALLIES ----------------------------------------
 def save_allies():
@@ -134,6 +127,16 @@ def load_allies():
 
 allies_list = load_allies()
 
+command_descriptions['allies'] = "Displays the list of players that are allies."
+@bot.command(name='allies')
+async def display_allies(ctx):
+    if allies_list:
+        allies_str = '\n'.join(allies_list)
+        await ctx.send(f'allies List:\n{allies_str}')
+    else:
+        await ctx.send('allies List is empty.')
+
+command_descriptions['allies_add <player>'] = "Adds a player to the allies list"
 @bot.command(name='allies_add')
 async def allies_add(ctx, name: str):
     if name not in allies_list:
@@ -143,6 +146,7 @@ async def allies_add(ctx, name: str):
     else:
         await ctx.send(f'`{name}` is already in the allies list.')
 
+command_descriptions['allies_remove <player>'] = "removes a player from the allies list."
 @bot.command(name='allies_remove')
 async def allies_remove(ctx, name: str):
     if name in allies_list:
@@ -152,15 +156,8 @@ async def allies_remove(ctx, name: str):
     else:
         await ctx.send(f'`{name}` is not in the allies list.')
 
-@bot.command(name='allies')
-async def display_allies(ctx):
-    if allies_list:
-        allies_str = '\n'.join(allies_list)
-        await ctx.send(f'allies List:\n{allies_str}')
-    else:
-        await ctx.send('allies List is empty.')
-
 # PLAY (YOUTUBE) --------------------------------
+command_descriptions['play <YouTube URL or search query>'] = "Plays a song from YouTube."
 
 ydl_opts = {
     'format': 'bestaudio/best',
@@ -192,6 +189,7 @@ async def play(ctx, *, search: str):
                         after=lambda e: print(f'Player error: {e}') if e else None)
 
 # STOP ------------------------------------------
+command_descriptions['stop'] = "Stops the currently playing song."
 @bot.command()
 async def stop(ctx):
     voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
@@ -199,14 +197,22 @@ async def stop(ctx):
         voice_client.stop()
 
 # LEAVE -----------------------------------------
+command_descriptions['leave'] = "Makes the bot leave the voice channel."
 @bot.command()
 async def leave(ctx):
     voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
     if voice_client:
         await voice_client.disconnect()
 
-
-
+# CLEAR -----------------------------------------
+command_descriptions['clear <amount>'] = "Clears the most recent <amount> of messages (default is 10)"
+@bot.command(name='clear')
+async def clear(ctx, amount: int = 10):
+    if ctx.message.author.guild_permissions.manage_messages:
+        await ctx.channel.purge(limit=amount + 1)
+        await ctx.send(f"Deleted {amount} messages.", delete_after=5)  # The message will be deleted after 5 seconds
+    else:
+        await ctx.send("You do not have permission to clear messages.")
 
 #################################################
 # MARKET
@@ -226,30 +232,22 @@ def load_from_file(filename):
     except (FileNotFoundError, JSONDecodeError):
         return {}
 
-# Load data from file on bot start
 user_sales = load_from_file(sell_file)
 user_buys = load_from_file(buy_file)
 
+# MARKET ----------------------------------------
 @bot.command(name='market')
 async def market(ctx):
     global sale_message, user_sales, user_buys, sell_file, buy_file
 
-    # Delete the last market message if it exists
     if sale_message:
         try:
             await sale_message.delete()
         except discord.NotFound:
             print("Previous sale_message not found. It might have been deleted.")
 
-    # Delete the command invocation message
     await ctx.message.delete()
 
-    # Load or initialize user_sales and user_buys
-    user_sales = load_from_file(sell_file)
-    user_buys = load_from_file(buy_file)
-
-    # If either user_sales or user_buys were not loaded successfully,
-    # they will be empty dictionaries, and we will create and save the empty dictionary into the JSON files.
     if not user_sales:
         save_to_file(user_sales, sell_file)
     if not user_buys:
@@ -259,7 +257,8 @@ async def market(ctx):
     await update_market_message(ctx)
 
 
-# Sell command
+# SELL ------------------------------------------
+command_descriptions['sell <item>'] = "Adds the item under your selling list in the market."
 @bot.command(name='sell')
 async def sell(ctx, *, item: str):
     global sale_message, user_sales
@@ -272,7 +271,8 @@ async def sell(ctx, *, item: str):
     save_to_file(user_sales, sell_file)
     await update_market_message(ctx)
 
-# Buy command
+# BUY -------------------------------------------
+command_descriptions['buy <item>'] = "Adds the item under your buying list in the market."
 @bot.command(name='buy')
 async def buy(ctx, *, item: str):
     global sale_message, user_buys
@@ -293,7 +293,6 @@ async def sell_remove(ctx, *, item: str):
     if author_name in user_sales and item in user_sales[author_name]:
         user_sales[author_name].remove(item)
 
-    # Remove the key if the list is empty
     if not user_sales[author_name]:
         del user_sales[author_name]
 
@@ -308,7 +307,6 @@ async def buy_remove(ctx, *, item: str):
     if author_name in user_buys and item in user_buys[author_name]:
         user_buys[author_name].remove(item)
 
-    # Remove the key if the list is empty
     if not user_buys[author_name]:
         del user_buys[author_name]
 
@@ -320,14 +318,14 @@ async def update_market_message(ctx):
 
     sell_content = "**__SELLING__**\n"
     for username, items in user_sales.items():
-        if items:  # Only include the username if the list is not empty
+        if items:
             sell_content += f"__{username}:__\n"
             for item in items:
                 sell_content += f"- {item}\n"
 
     buy_content = "\n**__BUYING__**\n"
     for username, items in user_buys.items():
-        if items:  # Only include the username if the list is not empty
+        if items:
             buy_content += f"__{username}:__\n"
             for item in items:
                 buy_content += f"- {item}\n"
