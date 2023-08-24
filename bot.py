@@ -209,7 +209,7 @@ command_descriptions['clear <amount>'] = "Clears the most recent <amount> of mes
 @bot.command(name='clear')
 async def clear(ctx, amount: int = 10):
     if ctx.message.author.guild_permissions.manage_messages:
-        await ctx.channel.purge(limit=amount + 1)  # +1 to delete the command message itself
+        await ctx.channel.purge(limit=amount + 1)
         await ctx.send(f"Deleted {amount} messages.", delete_after=5)  # The message will be deleted after 5 seconds
     else:
         await ctx.send("You do not have permission to clear messages.")
