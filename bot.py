@@ -205,6 +205,15 @@ async def leave(ctx):
     if voice_client:
         await voice_client.disconnect()
 
+# CLEAR -----------------------------------------
+@bot.command(name='clear')
+async def clear(ctx, amount: int = 10):
+    if ctx.message.author.guild_permissions.manage_messages:
+        await ctx.channel.purge(limit=amount + 1)  # +1 to delete the command message itself
+        await ctx.send(f"Deleted {amount} messages.", delete_after=5)  # The message will be deleted after 5 seconds
+    else:
+        await ctx.send("You do not have permission to clear messages.")
+
 
 
 
@@ -226,7 +235,7 @@ def load_from_file(filename):
     except (FileNotFoundError, JSONDecodeError):
         return {}
 
-# Load data from file on bot start
+# Load files
 user_sales = load_from_file(sell_file)
 user_buys = load_from_file(buy_file)
 
@@ -234,22 +243,14 @@ user_buys = load_from_file(buy_file)
 async def market(ctx):
     global sale_message, user_sales, user_buys, sell_file, buy_file
 
-    # Delete the last market message if it exists
     if sale_message:
         try:
             await sale_message.delete()
         except discord.NotFound:
             print("Previous sale_message not found. It might have been deleted.")
 
-    # Delete the command invocation message
     await ctx.message.delete()
 
-    # Load or initialize user_sales and user_buys
-    user_sales = load_from_file(sell_file)
-    user_buys = load_from_file(buy_file)
-
-    # If either user_sales or user_buys were not loaded successfully,
-    # they will be empty dictionaries, and we will create and save the empty dictionary into the JSON files.
     if not user_sales:
         save_to_file(user_sales, sell_file)
     if not user_buys:
