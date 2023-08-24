@@ -2,6 +2,8 @@ import os
 import discord
 from discord.ext import commands
 import yt_dlp as youtube_dl
+from discord.ext.commands import Cog
+
 
 #################################################
 # SETUP
@@ -33,9 +35,18 @@ async def on_command_error(ctx, error):
 #################################################
 # MESSAGES
 #################################################
+async def boss_message(message):
+    if message.author == bot.user:  # Skip messages sent by the bot itself
+        return
+
+    if 'boss' in message.content.lower():  # case insensitive
+        await message.reply("You better be talking about DADDY NIEK when saying boss!")
+
+
 @bot.event
 async def on_message(message):
     print(f"Received message: {message.content}")  # Debugging line
+    await boss_message(message)
     await bot.process_commands(message)  # This line is crucial to process commands.
 
 #################################################
