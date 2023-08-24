@@ -256,9 +256,9 @@ async def market(ctx):
     # Update the market message
     await update_market_message(ctx)
 
-
+command_descriptions['buy/sell <item>'] = "Adds the item under your buying/selling list in the market."
+command_descriptions['buy_remove/sell_remove'] = "Removes the item from your buying/selling list in the market."
 # SELL ------------------------------------------
-command_descriptions['sell <item>'] = "Adds the item under your selling list in the market."
 @bot.command(name='sell')
 async def sell(ctx, *, item: str):
     global sale_message, user_sales
@@ -272,7 +272,6 @@ async def sell(ctx, *, item: str):
     await update_market_message(ctx)
 
 # BUY -------------------------------------------
-command_descriptions['buy <item>'] = "Adds the item under your buying list in the market."
 @bot.command(name='buy')
 async def buy(ctx, *, item: str):
     global sale_message, user_buys
@@ -285,6 +284,7 @@ async def buy(ctx, *, item: str):
     save_to_file(user_buys, buy_file)
     await update_market_message(ctx)
 
+# REMOVES ---------------------------------------
 @bot.command(name='sell_remove')
 async def sell_remove(ctx, *, item: str):
     global sale_message, user_sales
@@ -313,8 +313,11 @@ async def buy_remove(ctx, *, item: str):
     save_to_file(user_buys, buy_file)
     await update_market_message(ctx)
 
+# UPDATE MESSAGE --------------------------------
 async def update_market_message(ctx):
     global sale_message
+
+    header = "**WOMP MARKET**\nDo `w! help` to learn more\n\n"
 
     sell_content = "**__SELLING__**\n"
     for username, items in user_sales.items():
@@ -330,12 +333,14 @@ async def update_market_message(ctx):
             for item in items:
                 buy_content += f"- {item}\n"
 
-    new_content = sell_content + buy_content
+    # Combined the header with the rest of the content.
+    new_content = header + sell_content + buy_content
 
     if sale_message is None:
         sale_message = await ctx.send(new_content)
     else:
         await sale_message.edit(content=new_content)
+
 
 #################################################
 # RUN
