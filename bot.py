@@ -2,7 +2,8 @@ import os
 import discord
 from discord.ext import commands
 import yt_dlp as youtube_dl
-from discord.ext.commands import Cog
+import json
+from json import JSONDecodeError
 
 
 #################################################
@@ -35,14 +36,18 @@ async def on_command_error(ctx, error):
 #################################################
 # MESSAGES
 #################################################
+
+# BOSS ------------------------------------------
 async def boss_message(message):
-    if message.author == bot.user:  # Skip messages sent by the bot itself
+    # Skip if the bot itself sent the message
+    if message.author == bot.user:
         return
 
-    if 'boss' in message.content.lower():  # case insensitive
+    if 'boss' in message.content.lower():
         await message.reply("You better be talking about DADDY NIEK when saying boss!")
 
 
+# ON MESSAGE ------------------------------------
 @bot.event
 async def on_message(message):
     print(f"Received message: {message.content}")  # Debugging line
@@ -199,6 +204,107 @@ async def leave(ctx):
     voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
     if voice_client:
         await voice_client.disconnect()
+
+
+
+
+#################################################
+# MARKET
+#################################################
+sale_message = None
+sell_file = "sell_data.json"
+buy_file = "buy_data.json"
+
+def save_to_file(data, filename):
+    with open(filename, "w") as f:
+        json.dump(data, f)
+
+def load_from_file(filename):
+    try:
+        with open(filename, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, JSONDecodeError):
+        return {}
+
+# Load data from file on bot start
+user_sales = load_from_file(sell_file)
+user_buys = load_from_file(buy_file)
+
+@bot.command(name='market')
+async def market(ctx):
+    global sale_message, user_sales, user_buys, sell_file, buy_file
+
+    # Delete the last market message if it exists
+    if sale_message:
+        try:
+            await sale_message.delete()
+        except discord.NotFound:
+            print("Previous sale_message not found. It might have been deleted.")
+
+    # Delete the command invocation message
+    await ctx.message.delete()
+
+    # Load or initialize user_sales and user_buys
+    user_sales = load_from_file(sell_file)
+    user_buys = load_from_file(buy_file)
+
+    # If either user_sales or user_buys were not loaded successfully,
+    # they will be empty dictionaries, and we will create and save the empty dictionary into the JSON files.
+    if not user_sales:
+        save_to_file(user_sales, sell_file)
+    if not user_buys:
+        save_to_file(user_buys, buy_file)
+
+    # Update the market message
+    await update_market_message(ctx)
+
+
+# Sell command
+@bot.command(name='sell')
+async def sell(ctx, *, item: str):
+    global sale_message, user_sales
+    author_name = str(ctx.author)
+
+    if author_name not in user_sales:
+        user_sales[author_name] = []
+    user_sales[author_name].append(item)
+
+    save_to_file(user_sales, sell_file)
+    await update_market_message(ctx)
+
+# Buy command
+@bot.command(name='buy')
+async def buy(ctx, *, item: str):
+    global sale_message, user_buys
+    author_name = str(ctx.author)
+
+    if author_name not in user_buys:
+        user_buys[author_name] = []
+    user_buys[author_name].append(item)
+
+    save_to_file(user_buys, buy_file)
+    await update_market_message(ctx)
+
+async def update_market_message(ctx):
+    global sale_message
+    sell_content = "**__SELLING__**\n"
+    for username, items in user_sales.items():
+        sell_content += f"__{username}:__\n"
+        for item in items:
+            sell_content += f"- {item}\n"
+
+    buy_content = "\n**__BUYING__**\n"
+    for username, items in user_buys.items():
+        buy_content += f"__{username}:__\n"
+        for item in items:
+            buy_content += f"- {item}\n"
+
+    new_content = sell_content + buy_content
+
+    if sale_message is None:
+        sale_message = await ctx.send(new_content)
+    else:
+        await sale_message.edit(content=new_content)
 
 #################################################
 # RUN
