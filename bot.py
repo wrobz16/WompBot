@@ -285,19 +285,52 @@ async def buy(ctx, *, item: str):
     save_to_file(user_buys, buy_file)
     await update_market_message(ctx)
 
+@bot.command(name='sell_remove')
+async def sell_remove(ctx, *, item: str):
+    global sale_message, user_sales
+    author_name = str(ctx.author)
+
+    if author_name in user_sales and item in user_sales[author_name]:
+        user_sales[author_name].remove(item)
+
+    # Remove the key if the list is empty
+    if not user_sales[author_name]:
+        del user_sales[author_name]
+
+    save_to_file(user_sales, sell_file)
+    await update_market_message(ctx)
+
+@bot.command(name='buy_remove')
+async def buy_remove(ctx, *, item: str):
+    global sale_message, user_buys
+    author_name = str(ctx.author)
+
+    if author_name in user_buys and item in user_buys[author_name]:
+        user_buys[author_name].remove(item)
+
+    # Remove the key if the list is empty
+    if not user_buys[author_name]:
+        del user_buys[author_name]
+
+    save_to_file(user_buys, buy_file)
+    await update_market_message(ctx)
+
 async def update_market_message(ctx):
     global sale_message
+
     sell_content = "**__SELLING__**\n"
     for username, items in user_sales.items():
-        sell_content += f"__{username}:__\n"
-        for item in items:
-            sell_content += f"- {item}\n"
+        if items:  # Only include the username if the list is not empty
+            sell_content += f"__{username}:__\n"
+            for item in items:
+                sell_content += f"- {item}\n"
 
     buy_content = "\n**__BUYING__**\n"
     for username, items in user_buys.items():
-        buy_content += f"__{username}:__\n"
-        for item in items:
-            buy_content += f"- {item}\n"
+        if items:  # Only include the username if the list is not empty
+            buy_content += f"__{username}:__\n"
+            for item in items:
+                buy_content += f"- {item}\n"
 
     new_content = sell_content + buy_content
 
