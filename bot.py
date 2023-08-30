@@ -46,12 +46,21 @@ async def boss_message(message):
     if 'boss' in message.content.lower():
         await message.reply("You better be talking about DADDY NIEK when saying boss!")
 
+# PEYPEL ----------------------------------------
+async def peypel_message(message):
+    if message.author == bot.user:
+        return
+
+    if 'peypel' in message.content.lower():
+        await message.reply("'PeyPel? More like GayPel.' - Taylor Swift, probably")
+
 
 # ON MESSAGE ------------------------------------
 @bot.event
 async def on_message(message):
     print(f"Received message: {message.content}")  # Debugging line
     await boss_message(message)
+    await peypel_message(message)
     await bot.process_commands(message)  # This line is crucial to process commands.
 
 #################################################
