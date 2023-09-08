@@ -5,6 +5,7 @@ from commands.help import command_descriptions
 
 def register(bot):
     def save_allies():
+        allies_list.sort()
         with open("allies_list.txt", "w") as file:
             for name in allies_list:
                 file.write(name + "\n")
@@ -12,7 +13,7 @@ def register(bot):
     def load_allies():
         if os.path.exists("allies_list.txt"):
             with open("allies_list.txt", "r") as file:
-                return [line.strip() for line in file.readlines()]
+                return sorted([line.strip() for line in file.readlines()])
         return []
 
     allies_list = load_allies()
