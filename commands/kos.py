@@ -5,6 +5,7 @@ from commands.help import command_descriptions
 
 def register(bot):
     def save_kos():
+        kos_list.sort()
         with open("kos_list.txt", "w") as file:
             for name in kos_list:
                 file.write(name + "\n")
@@ -12,7 +13,7 @@ def register(bot):
     def load_kos():
         if os.path.exists("kos_list.txt"):
             with open("kos_list.txt", "r") as file:
-                return [line.strip() for line in file.readlines()]
+                return sorted([line.strip() for line in file.readlines()])
         return []
 
     kos_list = load_kos()
