@@ -6,6 +6,7 @@ import os
 import settings
 import messages
 from commands.market import initialize_market
+from commands.kos import initialize_kos
 
 
 # Initialize bot
@@ -25,6 +26,7 @@ for filename in os.listdir(commands_folder_path):
 async def on_ready():
     print(f'{bot.user} has connected to Discord.')
     await initialize_market(bot) # Market message
+    await initialize_kos(bot)
 
 # For messages
 @bot.event
