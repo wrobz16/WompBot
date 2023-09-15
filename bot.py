@@ -5,13 +5,13 @@ import os
 
 import settings
 import messages
+from commands.market import initialize_market
+from commands.kos import initialize_kos
+
 
 # Initialize bot
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=settings.PREFIX, intents=intents, case_insensitive=True)
-
-# Register events
-#events.register(bot)
 
 # Register commands
 commands_folder_path = "./commands"
@@ -25,6 +25,8 @@ for filename in os.listdir(commands_folder_path):
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord.')
+    await initialize_market(bot) # Market message
+    await initialize_kos(bot)
 
 # For messages
 @bot.event
