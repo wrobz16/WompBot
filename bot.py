@@ -7,7 +7,7 @@ import settings
 import messages
 from commands.market import initialize_market
 from commands.kos import initialize_kos
-
+from commands import ping
 
 # Initialize bot
 intents = discord.Intents.all()
@@ -27,6 +27,7 @@ async def on_ready():
     print(f'{bot.user} has connected to Discord.')
     await initialize_market(bot) # Market message
     await initialize_kos(bot)
+    await ping.ping_at_time(bot)
 
 # For messages
 @bot.event
