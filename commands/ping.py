@@ -7,13 +7,14 @@ async def ping_at_time(bot):
     with open('ping.json', 'r') as f:
         config = json.load(f)
 
-    ping_hours = [1, 4, 7, 10, 13, 16, 19, 22]  # 12am to 9pm
+    ping_hours_tomb = [1, 4, 7, 10, 13, 16, 19, 22]
+    ping_hours_wz = [0, 3, 6, 9, 12, 15, 18, 21]
     ping_minute = 45
 
     @tasks.loop(minutes=1.0)
     async def _task():
         now = datetime.now()
-        if now.hour in ping_hours and now.minute == ping_minute:  # Check if it's one of the specified times
+        if now.hour in ping_hours_tomb and now.minute == ping_minute:
             guild_id = config['guild_id']
             guild = bot.get_guild(guild_id)
             if guild:
@@ -22,7 +23,18 @@ async def ping_at_time(bot):
                 channel_id = config['channel_id']
                 channel = bot.get_channel(channel_id)
                 if role and channel:
-                    await channel.send(f'{role.mention} TOMB Pond in 15 minutes, get in soon to avoid cooldown timer.')
+                    await channel.send(f'{role.mention} TOMB Pond in 15 minutes, get in soon to avoid cooldown timer!')
+
+        if now.hour in ping_hours_wz and now.minute == ping_minute:
+            guild_id = config['guild_id']
+            guild = bot.get_guild(guild_id)
+            if guild:
+                role_id = config['role_id']
+                role = guild.get_role(role_id)
+                channel_id = config['channel_id']
+                channel = bot.get_channel(channel_id)
+                if role and channel:
+                    await channel.send(f'{role.mention} WARZONE Pond in 15 minutes!')
     
     _task.start()
 
@@ -36,6 +48,6 @@ def register(bot):
         POND_ROLE = config['role_id']
         role = ctx.guild.get_role(POND_ROLE)
         if role:
-            await ctx.send(f'{role.mention} Pond in 15 minutes, get in soon to avoid cooldown timer.')
+            await ctx.send(f'{role.mention} pond')
         else:
             await ctx.send('Role not found.')
